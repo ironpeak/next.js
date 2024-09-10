@@ -58,6 +58,12 @@ import type { FlightRouterState } from '../../server/app-render/types'
 import { useNavFailureHandler } from './nav-failure-handler'
 import { useServerActionDispatcher } from '../app-call-server'
 import type { AppRouterActionQueue } from '../../shared/lib/router/action-queue'
+import {
+  getRedirectTypeFromError,
+  getURLFromRedirectError,
+  isRedirectError,
+  RedirectType,
+} from './redirect'
 
 const globalMutable: {
   pendingMpaPath?: string
@@ -368,6 +374,25 @@ function Router({
       window.removeEventListener('pageshow', handlePageShow)
     }
   }, [dispatch])
+
+  useEffect(() => {
+    function handle(event: ErrorEvent) {
+      if (isRedirectError(event.error)) {
+        const url = getURLFromRedirectError(event.error)
+        const redirectType = getRedirectTypeFromError(event.error)
+        if (redirectType === RedirectType.push) {
+          appRouter.push(url, {})
+        } else {
+          appRouter.replace(url, {})
+        }
+      }
+    }
+    window.addEventListener('error', handle)
+
+    return () => {
+      window.removeEventListener('error', handle)
+    }
+  }, [appRouter])
 
   // When mpaNavigation flag is set do a hard navigation to the new url.
   // Infinitely suspend because we don't actually want to rerender any child

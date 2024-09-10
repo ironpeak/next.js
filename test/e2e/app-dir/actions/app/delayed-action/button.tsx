@@ -1,25 +1,29 @@
 'use client'
 
-import { useContext } from 'react'
+import { startTransition, useContext } from 'react'
 import { action, redirectAction } from './actions'
 import { DataContext } from './context'
 
 export function Button() {
   const { setData } = useContext(DataContext)
   const handleClick = async () => {
-    await new Promise((res) => setTimeout(res, 1000))
+    startTransition(async () => {
+      await new Promise((res) => setTimeout(res, 1000))
 
-    const result = await action()
+      const result = await action()
 
-    setData(result)
+      setData(result)
+    })
   }
 
   const handleRedirect = async () => {
-    await new Promise((res) => setTimeout(res, 1000))
+    startTransition(async () => {
+      await new Promise((res) => setTimeout(res, 1000))
 
-    const result = await redirectAction()
+      const result = await redirectAction()
 
-    setData(result)
+      setData(result)
+    })
   }
 
   return (
